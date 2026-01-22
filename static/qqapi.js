@@ -14,14 +14,7 @@
     
     // 检测应用是否安装
     mqq.isAppInstalled = function(params, callback) {
-        if (!mqq.isQQ()) {
-            callback && callback({
-                code: -1,
-                message: '非QQ浏览器环境'
-            });
-            return;
-        }
-        
+        // 移除QQ环境检测，允许在任何浏览器中尝试调用
         if (typeof mqq !== 'undefined' && mqq.invoke) {
             mqq.invoke('app', 'isAppInstalled', params, function(result) {
                 callback && callback(result);
@@ -36,14 +29,7 @@
     
     // 调起应用
     mqq.launchApp = function(params, callback) {
-        if (!mqq.isQQ()) {
-            callback && callback({
-                code: -1,
-                message: '非QQ浏览器环境'
-            });
-            return;
-        }
-        
+        // 移除QQ环境检测，允许在任何浏览器中尝试调用
         if (typeof mqq !== 'undefined' && mqq.invoke) {
             mqq.invoke('app', 'launchApp', params, function(result) {
                 callback && callback(result);
@@ -58,13 +44,7 @@
     
     // 通用调用方法
     mqq.invoke = function(namespace, method, params, callback) {
-        if (!mqq.isQQ()) {
-            callback && callback({
-                code: -1,
-                message: '非QQ浏览器环境'
-            });
-            return;
-        }
+        // 移除QQ环境检测，允许在任何浏览器中尝试调用
         
         // 尝试使用QQ内置的JSBridge
         if (window.QQJSBridge && window.QQJSBridge.call) {
@@ -78,7 +58,7 @@
                 callback: callback
             });
         } else {
-            // 尝试使用schema方式
+            // 尝试使用schema方式（非QQ环境下的降级方案）
             var schema = 'mqqapi://' + namespace + '/' + method + '?';
             var paramStr = '';
             for (var key in params) {
@@ -86,6 +66,8 @@
                 paramStr += key + '=' + encodeURIComponent(params[key]);
             }
             schema += paramStr;
+            
+            console.log('非QQ环境，尝试schema方式:', schema);
             
             var iframe = document.createElement('iframe');
             iframe.style.display = 'none';
@@ -96,7 +78,7 @@
                 document.body.removeChild(iframe);
                 callback && callback({
                     code: 0,
-                    message: 'success'
+                    message: 'schema调用已发送'
                 });
             }, 100);
         }
